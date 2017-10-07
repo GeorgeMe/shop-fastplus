@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.shop.modules.base.dao.SysAreaDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.shop.modules.base.entity.SysAreaEntity" id="sysAreaMap">
+        <result property="areaId" column="area_id"/>
+        <result property="areaCode" column="area_code"/>
+        <result property="parentCode" column="parent_code"/>
+        <result property="name" column="name"/>
+        <result property="layer" column="layer"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="io.shop.modules.base.entity.SysAreaEntity">
+		select * from sys_area where area_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="io.shop.modules.base.entity.SysAreaEntity">
+		SELECT
+		a.area_id,
+		a.area_code,
+		a.parent_code,
+		a.name,
+		a.layer,
+		a.order_num,
+		a.status,
+		<if test="name == null">
+			(
+			SELECT
+			count(*)
+			FROM
+			sys_area p
+			WHERE
+			p.parent_code = a.area_code
+			) AS size,
+		</if>
+		a.remark
+		FROM
+		sys_area a
+		<where>
+			<if test="parentCode != null">
+				AND a.parent_code = #{parentCode}
+			</if>
+			<if test="name != null and name.trim() != ''">
+				AND a.name LIKE concat('%',#{name},'%')
+			</if>
+		</where>
+		ORDER BY
+		a.order_num ASC
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from sys_area 
+	</select>
+	 
+	<insert id="save" parameterType="io.shop.modules.base.entity.SysAreaEntity" useGeneratedKeys="true" keyProperty="areaId">
+		insert into sys_area
+		(
+			`area_code`, 
+			`parent_code`, 
+			`name`, 
+			`layer`, 
+			`order_num`, 
+			`status`, 
+			`remark`, 
+			`create_date`
+		)
+		values
+		(
+			#{areaCode}, 
+			#{parentCode}, 
+			#{name}, 
+			#{layer}, 
+			#{orderNum}, 
+			#{status}, 
+			#{remark},
+			 now()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="io.shop.modules.base.entity.SysAreaEntity">
+		update sys_area 
+		<set>
+			<if test="areaCode != null">`area_code` = #{areaCode}, </if>
+			<if test="parentCode != null">`parent_code` = #{parentCode}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="layer != null">`layer` = #{layer}, </if>
+			<if test="orderNum != null">`order_num` = #{orderNum}, </if>
+			<if test="status != null">`status` = #{status}, </if>
+			<if test="remark != null">`remark` = #{remark}, </if>
+			update_date=NOW()
+		</set>
+		where area_id = #{areaId}
+	</update>
+	
+	<delete id="delete">
+		delete from sys_area where area_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from sys_area where area_id in 
+		<foreach item="areaId" collection="array" open="(" separator="," close=")">
+			#{areaId}
+		</foreach>
+	</delete>
+
+</mapper>
